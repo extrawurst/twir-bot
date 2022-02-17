@@ -1,24 +1,15 @@
-use std::env;
-
 use anyhow::Result;
-use handlebars::Handlebars;
 use regex::Regex;
-use serde_json::json;
 use serenity::{
     async_trait,
+    http::AttachmentType,
     model::{
         channel::{Embed, Message, ReactionType},
         gateway::Ready,
     },
     prelude::*,
 };
-
-static CREATE_MSG: &str = "
-{{meta}}
-```
-{{content}}
-```
-";
+use std::env;
 
 static HELP_MESSAGE: &str = "
 try:
@@ -107,19 +98,24 @@ impl Handler {
                     // tracing::info!("match: '{}': {} ({})", m.author.name, m.link(), url);
                     // tracing::info!("match: {:?}", m);
 
-                    // let title = Self::get_link_title(&m.embeds);
-                    entries.push(CollectEntry { title: None, url });
+                    let title = Self::get_link_title(&m.embeds);
+                    entries.push(CollectEntry { title, url });
                 }
 
                 message_cursor = m.id;
             }
         }
 
+        let (msg_content, attachement_content) =
+            Self::create_collect_response(stop_msg_link, entries)?;
+
+        let att: AttachmentType = (attachement_content.as_bytes(), "list.md").into();
         msg.channel_id
-            .say(
-                &ctx.http,
-                Self::create_collect_response(stop_msg_link, entries)?,
-            )
+            .send_message(&ctx.http, |m| {
+                m.content(msg_content);
+                m.add_file(att);
+                m
+            })
             .await?;
 
         Ok(())
@@ -138,7 +134,6 @@ impl Handler {
             .any(|reaction| reaction.reaction_type == ReactionType::Unicode(String::from("✅")))
     }
 
-    #[allow(dead_code)]
     fn get_link_title(embeds: &[Embed]) -> Option<String> {
         embeds.iter().next().and_then(|embed| embed.title.clone())
     }
@@ -160,13 +155,14 @@ impl Handler {
     fn create_collect_response(
         stop_msg_link: Option<String>,
         entries: Vec<CollectEntry>,
-    ) -> Result<String> {
-        let reg = Handlebars::new();
+    ) -> Result<(String, String)> {
+        // let reg = Handlebars::new();
         let meta_string = format!(
             "entries: {}\nstop msg: {}",
             entries.len(),
             stop_msg_link.unwrap_or_default()
         );
+
         let content_string = entries
             .into_iter()
             .map(|entry| {
@@ -179,16 +175,7 @@ impl Handler {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let msg_string = reg.render_template(
-            CREATE_MSG,
-            &json!(
-            {
-                "content": content_string.as_str(),
-                "meta": meta_string.as_str(),
-            }),
-        )?;
-
-        Ok(msg_string)
+        Ok((meta_string, content_string))
     }
 }
 
