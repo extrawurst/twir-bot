@@ -1,0 +1,15 @@
+[package]
+name = "twir-bot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serenity = { version = "0.10", default-features = false, features = ["client", "gateway", "rustls_backend", "model"] }
+handlebars = "4.2"
+serde_json = "1.0"
+chrono = "0.4"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+regex = "1"
+anyhow = "1"
