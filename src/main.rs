@@ -114,6 +114,7 @@ impl Handler {
             .send_message(&ctx.http, |m| {
                 m.content(msg_content);
                 m.add_file(att);
+                m.reference_message(msg);
                 m
             })
             .await?;
