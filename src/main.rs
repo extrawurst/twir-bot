@@ -9,7 +9,7 @@ use serenity::{
     },
     prelude::*,
 };
-use std::env;
+use std::{collections::HashSet, env};
 
 static HELP_MESSAGE: &str = "
 try:
@@ -27,6 +27,7 @@ struct CollectEntry {
 
 struct Handler {
     pub regex_url: Regex,
+    ignore_emojis: HashSet<String>,
 }
 
 #[async_trait]
@@ -50,12 +51,18 @@ impl EventHandler for Handler {
 
 impl Handler {
     fn new() -> Self {
+        let mut ignore_emojis = HashSet::new();
+        ignore_emojis.insert("🇩".into());
+        ignore_emojis.insert("\u{1F1EE}".into()); //🇮
+        ignore_emojis.insert("🛑".into());
+
         Self {
             // slighly modified:
             // https://www.geeksforgeeks.org/python-check-url-string/
             regex_url: Regex::new(
                 r#"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))"#,
             ).unwrap(),
+            ignore_emojis
         }
     }
 
@@ -87,7 +94,7 @@ impl Handler {
                     break 'outer;
                 }
 
-                if Self::ignore_msg(&m) {
+                if self.ignore_msg(&m) {
                     tracing::info!("ignored msg: {}", m.link());
                     continue;
                 }
@@ -139,18 +146,16 @@ impl Handler {
         embeds.iter().next().and_then(|embed| embed.title.clone())
     }
 
-    fn ignore_msg(msg: &Message) -> bool {
-        let is_disapproved = msg
-            .reactions
-            .iter()
-            .any(|reaction| reaction.reaction_type == ReactionType::Unicode(String::from("🛑")));
+    fn ignore_msg(&self, msg: &Message) -> bool {
+        let ignore_reaction = msg.reactions.iter().any(|reaction| {
+            if let ReactionType::Unicode(emoji) = &reaction.reaction_type {
+                self.ignore_emojis.contains(emoji)
+            } else {
+                false
+            }
+        });
 
-        let is_dup = msg
-            .reactions
-            .iter()
-            .any(|reaction| reaction.reaction_type == ReactionType::Unicode(String::from("🇩")));
-
-        msg.author.bot || is_dup || is_disapproved
+        msg.author.bot || ignore_reaction
     }
 
     fn create_collect_response(
