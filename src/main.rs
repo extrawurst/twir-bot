@@ -1,7 +1,9 @@
 #![forbid(unsafe_code)]
 
 use anyhow::Result;
+use handlebars::Handlebars;
 use regex::Regex;
+use serde_json::json;
 use serenity::{
     async_trait,
     http::AttachmentType,
@@ -13,10 +15,14 @@ use serenity::{
 };
 use std::{collections::HashSet, env};
 
+pub const GIT_HASH: &str = env!("GIT_HASH");
+
 static HELP_MESSAGE: &str = "
-try:
-!help
-!collect
+**try**:
+`!help`
+`!collect`
+
+my version: {{version}}
 ";
 
 const CMD_COLLECT: &str = "!collect";
@@ -69,7 +75,10 @@ impl Handler {
     }
 
     async fn help_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
-        msg.channel_id.say(&ctx.http, HELP_MESSAGE).await?;
+        let reg = Handlebars::new();
+        let msg_string = reg.render_template(HELP_MESSAGE, &json!({ "version": GIT_HASH }))?;
+
+        msg.channel_id.say(&ctx.http, msg_string).await?;
 
         Ok(())
     }

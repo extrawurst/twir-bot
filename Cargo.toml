@@ -2,6 +2,7 @@
 name = "twir-bot"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 anyhow = "1"
@@ -10,6 +11,5 @@ serenity = { version = "0.10", default-features = false, features = ["client", "
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
-
-[dev-dependencies]
+handlebars = "4.2"
 serde_json = "1.0"
