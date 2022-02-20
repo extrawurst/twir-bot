@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # run at 2 AM UTC
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+    - name: check
+      run: |
+        cargo c
+    - name: clippy
+      run: |
+        cargo clippy
+    - name: test
+      run: |
+        cargo t
+    - name: release
+      run: |
+        cargo b --release
+
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt
+    - run: cargo fmt -- --check
+    - name: cargo-sort
+      run: |
+        cargo install cargo-sort --force
+        cargo sort -c -w
