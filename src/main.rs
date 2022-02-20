@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use handlebars::Handlebars;
+use humantime::format_duration;
 use regex::Regex;
 use serde_json::json;
 use serenity::{
@@ -13,7 +14,7 @@ use serenity::{
     },
     prelude::*,
 };
-use std::{collections::HashSet, env};
+use std::{collections::HashSet, env, time::Instant};
 
 pub const GIT_HASH: &str = env!("GIT_HASH");
 
@@ -22,7 +23,7 @@ static HELP_MESSAGE: &str = "
 `!help`
 `!collect`
 
-my version: {{version}}
+version: {{version}} - uptime: {{uptime}}
 ";
 
 const CMD_COLLECT: &str = "!collect";
@@ -36,6 +37,7 @@ struct CollectEntry {
 struct Handler {
     pub regex_url: Regex,
     ignore_emojis: HashSet<String>,
+    start_time: Instant,
 }
 
 #[async_trait]
@@ -70,13 +72,19 @@ impl Handler {
             regex_url: Regex::new(
                 r#"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))"#,
             ).unwrap(),
-            ignore_emojis
+            ignore_emojis,
+            start_time: Instant::now()
         }
     }
 
     async fn help_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
+        let up_time = self.start_time.elapsed();
+        let up_time = format_duration(up_time).to_string();
         let reg = Handlebars::new();
-        let msg_string = reg.render_template(HELP_MESSAGE, &json!({ "version": GIT_HASH }))?;
+        let msg_string = reg.render_template(
+            HELP_MESSAGE,
+            &json!({ "version": GIT_HASH, "uptime": up_time }),
+        )?;
 
         msg.channel_id.say(&ctx.http, msg_string).await?;
 
