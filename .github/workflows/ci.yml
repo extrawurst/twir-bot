@@ -10,6 +10,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: extrawurst/twir-bot
 
 jobs:
   build:
@@ -55,17 +57,26 @@ jobs:
       name: size
       run: ls -l bin/server  
     - 
-      name: Login to DockerHub
+      name: Login to Registry
       uses: docker/login-action@v1
       with:
-        username: extrawurst
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: docker build and push
+    - 
+      name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v1
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    - 
+      name: docker build and push
       uses: docker/build-push-action@v2
       with:
         push: true
         context: .
-        tags: extrawurst/twir-bot:latest
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
 
   formatting:
     runs-on: ubuntu-latest
