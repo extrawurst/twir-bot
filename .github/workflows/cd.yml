@@ -26,7 +26,6 @@ jobs:
         cargo b --release
     - name: rename
       run: |
-        mkdir bin
         mv target/release/twir-bot bin/server
     - 
       name: size
