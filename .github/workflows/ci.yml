@@ -51,12 +51,19 @@ jobs:
       run: |
         mkdir bin
         mv target/release/twir-bot bin/server
-    - name: size
+    - 
+      name: size
       run: ls -l bin/server  
+    - 
+      name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: extrawurst
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: docker build and push
       uses: docker/build-push-action@v2
       with:
-        push: false
+        push: true
         context: .
         tags: extrawurst/twir-bot:latest
 
