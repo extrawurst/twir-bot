@@ -20,7 +20,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        components: rustfmt, clippy
+        components: clippy
     - name: check
       run: |
         cargo c
