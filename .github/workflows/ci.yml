@@ -10,6 +10,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/extrawurst/twir-bot
 
 jobs:
   build:
@@ -24,15 +26,47 @@ jobs:
     - name: check
       run: |
         cargo c
+    - name: build
+      run: |
+        cargo b
     - name: clippy
       run: |
         cargo clippy
     - name: test
       run: |
         cargo t
-    - name: release
+
+  build-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: build
       run: |
         cargo b --release
+    - name: rename
+      run: |
+        mkdir bin
+        mv target/release/twir-bot bin/server
+    - 
+      name: size
+      run: ls -l bin/server  
+    - 
+      name: Build image
+      run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+    - 
+      name: Log in to registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+    - 
+      name: Push image
+      run: |
+        docker push $IMAGE_NAME:latest
 
   formatting:
     runs-on: ubuntu-latest
