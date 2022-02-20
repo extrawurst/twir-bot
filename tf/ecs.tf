@@ -1,9 +1,10 @@
 data "template_file" "taskdefinitions" {
   template = file("./task.json.tpl")
   vars = {
-    region    = var.region
-    loggroup  = aws_cloudwatch_log_group.loggroup.name
-    api-image = var.docker-image
+    region        = var.region
+    loggroup      = aws_cloudwatch_log_group.loggroup.name
+    api-image     = var.docker-image
+    discord_token = var.discord_token
   }
 }
 
@@ -34,7 +35,7 @@ resource "aws_ecs_service" "api" {
 
   desired_count                      = 1
   deployment_minimum_healthy_percent = 0
-  deployment_maximum_percent         = 100
+  deployment_maximum_percent         = 200
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]

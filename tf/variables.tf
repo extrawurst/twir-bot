@@ -2,6 +2,8 @@ variable "access_key" {}
 variable "secret_key" {}
 variable "account_id" {}
 
+variable "discord_token" {}
+
 variable "region" {
   default = "eu-west-1"
 }
@@ -13,7 +15,7 @@ variable "tags" {
 }
 
 variable "docker-image" {
-  default = "strm/helloworld-http"
+  default = "ghcr.io/extrawurst/twir-bot"
 }
 
 variable "cidr" {

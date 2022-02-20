@@ -16,6 +16,10 @@
       {
         "name": "RUST_LOG",
         "value": "info"
+      },
+      {
+        "name": "DISCORD_TOKEN",
+        "value": "${discord_token}"
       }
     ],
     "mountPoints": [],
