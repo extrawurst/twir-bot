@@ -11,6 +11,7 @@ use serenity::{
     model::{
         channel::{Embed, Message, ReactionType},
         gateway::Ready,
+        id::MessageId,
     },
     prelude::*,
 };
@@ -21,17 +22,26 @@ pub const GIT_HASH: &str = env!("GIT_HASH");
 static HELP_MESSAGE: &str = "
 **try**:
 `!help`
-`!collect`
+`!collect` - will collect all new entries to add
+`!ack` - will put checkboxes on all found entries
 
 version: {{version}} - uptime: {{uptime}}
 ";
 
+static ACK_MSG: &str = "
+acknowledged: {{count}} entries
+";
+
 const CMD_COLLECT: &str = "!collect";
+const CMD_ACK: &str = "!ack";
 const HELP_COMMAND: &str = "!help";
+
+const UNICODE_CHECKBOX: &str = "✅";
 
 struct CollectEntry {
     pub title: Option<String>,
     pub url: String,
+    msg_id: MessageId,
 }
 
 struct Handler {
@@ -45,6 +55,7 @@ impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
+            CMD_ACK => self.ack_cmd(&ctx, &msg).await,
             HELP_COMMAND => self.help_cmd(&ctx, &msg).await,
             _ => Ok(()),
         };
@@ -97,7 +108,61 @@ impl Handler {
         Ok(())
     }
 
+    async fn ack_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
+        let (entries, _) = self.gather_entries(msg, ctx).await?;
+
+        for e in &entries {
+            msg.channel_id.broadcast_typing(&ctx.http).await?;
+
+            msg.channel_id
+                .create_reaction(
+                    &ctx.http,
+                    e.msg_id,
+                    ReactionType::Unicode(String::from(UNICODE_CHECKBOX)),
+                )
+                .await?;
+        }
+
+        let reg = Handlebars::new();
+        let msg_string = reg.render_template(ACK_MSG, &json!({ "count": entries.len() }))?;
+
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.content(msg_string);
+                m.reference_message(msg);
+                m
+            })
+            .await?;
+
+        Ok(())
+    }
+
     async fn collect_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
+        msg.channel_id.broadcast_typing(&ctx.http).await?;
+
+        let (entries, stop_msg_link) = self.gather_entries(msg, ctx).await?;
+
+        let (msg_content, attachement_content) =
+            Self::create_collect_response(stop_msg_link, entries)?;
+
+        let att: AttachmentType = (attachement_content.as_bytes(), "list.md").into();
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.content(msg_content);
+                m.add_file(att);
+                m.reference_message(msg);
+                m
+            })
+            .await?;
+
+        Ok(())
+    }
+
+    async fn gather_entries(
+        &self,
+        msg: &Message,
+        ctx: &Context,
+    ) -> Result<(Vec<CollectEntry>, Option<String>)> {
         let mut message_cursor = msg.id;
         let mut entries: Vec<CollectEntry> = Vec::new();
         let mut stop_msg_link = None;
@@ -127,31 +192,19 @@ impl Handler {
                 if let Some(capture) = self.find_url(&m.content) {
                     let url = capture.as_str().to_string();
 
-                    // tracing::info!("match: '{}': {} ({})", m.author.name, m.link(), url);
-                    // tracing::info!("match: {:?}", m);
-
                     let title = Self::get_link_title(&m.embeds);
-                    entries.push(CollectEntry { title, url });
+                    entries.push(CollectEntry {
+                        title,
+                        url,
+                        msg_id: m.id,
+                    });
                 }
 
                 message_cursor = m.id;
             }
         }
 
-        let (msg_content, attachement_content) =
-            Self::create_collect_response(stop_msg_link, entries)?;
-
-        let att: AttachmentType = (attachement_content.as_bytes(), "list.md").into();
-        msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(msg_content);
-                m.add_file(att);
-                m.reference_message(msg);
-                m
-            })
-            .await?;
-
-        Ok(())
+        Ok((entries, stop_msg_link))
     }
 
     fn find_url(&self, msg: &str) -> Option<String> {
@@ -162,9 +215,9 @@ impl Handler {
     }
 
     fn is_stop_msg(msg: &Message) -> bool {
-        msg.reactions
-            .iter()
-            .any(|reaction| reaction.reaction_type == ReactionType::Unicode(String::from("✅")))
+        msg.reactions.iter().any(|reaction| {
+            reaction.reaction_type == ReactionType::Unicode(String::from(UNICODE_CHECKBOX))
+        })
     }
 
     fn get_link_title(embeds: &[Embed]) -> Option<String> {
