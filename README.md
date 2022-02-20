@@ -1,8 +1,7 @@
 # twir-bot
-Little 🤖 helping TWIR 🦀 authors extracting gathered content from discord
+Little 🤖 helping [TWIR](https://github.com/rust-lang/this-week-in-rust) 🦀 authors extracting gathered content from discord.
 
 # TODO
-* [ ] support command to react to collected entries with the checkbox
+* [ ] perform duplicate checking each entry added JIT (+ reaction)
+* [ ] language tag detection on collection (+ reaction)
 * [ ] on each new msg perform check if it would be added (+ reaction)
-* [ ] perform duplicate checking each entry added JIT
-* [ ] language tag detection on collection (+reaction)
