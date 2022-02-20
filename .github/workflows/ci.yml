@@ -8,9 +8,6 @@ on:
   pull_request:
     branches: [ master ]
 
-permissions:
-  packages: write
-
 env:
   CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
@@ -41,6 +38,9 @@ jobs:
 
   build-docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
