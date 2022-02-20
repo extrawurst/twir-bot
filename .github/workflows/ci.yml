@@ -49,7 +49,6 @@ jobs:
         cargo b --release
     - name: rename
       run: |
-        cargo b --release
         mkdir bin
         mv target/release/twir-bot bin/server
     - name: size
@@ -58,6 +57,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: false
+        context: .
         tags: extrawurst/twir-bot:latest
 
   formatting:
