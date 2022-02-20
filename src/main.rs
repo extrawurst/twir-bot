@@ -35,7 +35,7 @@ struct CollectEntry {
 }
 
 struct Handler {
-    pub regex_url: Regex,
+    regex_url: Regex,
     ignore_emojis: HashSet<String>,
     start_time: Instant,
 }
@@ -86,7 +86,13 @@ impl Handler {
             &json!({ "version": GIT_HASH, "uptime": up_time }),
         )?;
 
-        msg.channel_id.say(&ctx.http, msg_string).await?;
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.content(msg_string);
+                m.reference_message(msg);
+                m
+            })
+            .await?;
 
         Ok(())
     }
