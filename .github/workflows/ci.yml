@@ -24,15 +24,34 @@ jobs:
     - name: check
       run: |
         cargo c
+    - name: build
+      run: |
+        cargo b
     - name: clippy
       run: |
         cargo clippy
     - name: test
       run: |
         cargo t
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
     - name: release
       run: |
         cargo b --release
+        mkdir bin
+        mv target/release/twir-bot bin/server
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: false
+        tags: extrawurst/twir-bot:latest
 
   formatting:
     runs-on: ubuntu-latest
