@@ -1,8 +1,10 @@
 #![forbid(unsafe_code)]
+mod links_file;
 
 use anyhow::Result;
 use handlebars::Handlebars;
 use humantime::format_duration;
+use links_file::LinksFile;
 use regex::Regex;
 use serde_json::json;
 use serenity::{
@@ -37,6 +39,7 @@ const CMD_ACK: &str = "!ack";
 const HELP_COMMAND: &str = "!help";
 
 const UNICODE_CHECKBOX: &str = "✅";
+const UNICODE_DUPLICATE: &str = "🇩";
 
 struct CollectEntry {
     pub title: Option<String>,
@@ -48,6 +51,7 @@ struct Handler {
     regex_url: Regex,
     ignore_emojis: HashSet<String>,
     start_time: Instant,
+    links_file: Option<LinksFile>,
 }
 
 #[async_trait]
@@ -57,7 +61,7 @@ impl EventHandler for Handler {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
             HELP_COMMAND => self.help_cmd(&ctx, &msg).await,
-            _ => Ok(()),
+            _ => self.no_cmd(&ctx, &msg).await,
         };
 
         if let Err(err) = res {
@@ -71,9 +75,9 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
-    fn new() -> Self {
+    fn new(links_file: Option<LinksFile>) -> Self {
         let mut ignore_emojis = HashSet::new();
-        ignore_emojis.insert("🇩".into());
+        ignore_emojis.insert(UNICODE_DUPLICATE.into());
         ignore_emojis.insert("\u{1F1EE}".into()); //🇮
         ignore_emojis.insert("🛑".into());
 
@@ -84,7 +88,8 @@ impl Handler {
                 r#"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))"#,
             ).unwrap(),
             ignore_emojis,
-            start_time: Instant::now()
+            start_time: Instant::now(),
+            links_file
         }
     }
 
@@ -133,6 +138,32 @@ impl Handler {
                 m
             })
             .await?;
+
+        Ok(())
+    }
+
+    async fn no_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
+        tracing::info!("no_cmd handler: {}", msg.link());
+
+        if self.ignore_msg(msg) {
+            tracing::info!("ignore msg: {}", msg.link());
+
+            return Ok(());
+        }
+
+        if let Some(capture) = self.find_url(&msg.content) {
+            if let Some(links_file) = &self.links_file {
+                if links_file.contains(capture).await {
+                    msg.channel_id
+                        .create_reaction(
+                            &ctx.http,
+                            msg.id,
+                            ReactionType::Unicode(String::from(UNICODE_DUPLICATE)),
+                        )
+                        .await?;
+                }
+            }
+        }
 
         Ok(())
     }
@@ -271,7 +302,11 @@ async fn main() {
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    let h = Handler::new();
+    let links_file = LinksFile::new()
+        .await
+        .expect("Expected links file to download");
+
+    let h = Handler::new(Some(links_file));
 
     let mut client = Client::builder(&token)
         .event_handler(h)
@@ -303,7 +338,7 @@ mod test {
 
     #[test]
     fn test_url_filter() {
-        let h = Handler::new();
+        let h = Handler::new(None);
 
         let url = "https://nadim.computer/posts/2022-02-11-maccatalyst.html";
         assert_eq!(h.find_url(url).unwrap(), url);
