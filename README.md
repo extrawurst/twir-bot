@@ -7,6 +7,5 @@ The weekly updates from the community is assembled by a couple of contributors g
 ![demo](demo.gif)
 
 # TODO
-* [ ] perform duplicate check based on TWIR repo
 * [ ] language tag detection on collection (+ reaction)
 * [ ] on each new msg perform check if it would be added (+ reaction)

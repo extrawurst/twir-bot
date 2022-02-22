@@ -4,7 +4,7 @@ mod links_file;
 use anyhow::Result;
 use handlebars::Handlebars;
 use humantime::format_duration;
-use links_file::LinksFile;
+use links_file::{LinksFile, URL_REGEX};
 use regex::Regex;
 use serde_json::json;
 use serenity::{
@@ -82,14 +82,10 @@ impl Handler {
         ignore_emojis.insert("🛑".into());
 
         Self {
-            // slighly modified:
-            // https://www.geeksforgeeks.org/python-check-url-string/
-            regex_url: Regex::new(
-                r#"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))"#,
-            ).unwrap(),
+            regex_url: URL_REGEX.clone(),
             ignore_emojis,
             start_time: Instant::now(),
-            links_file
+            links_file,
         }
     }
 
