@@ -7,5 +7,7 @@ The weekly updates from the community is assembled by a couple of contributors g
 ![demo](demo.gif)
 
 # TODO
+* [ ] limit bot to specific channel
+* [ ] do dupe detection on `!collect`
 * [ ] language tag detection on collection (+ reaction)
 * [ ] on each new msg perform check if it would be added (+ reaction)
