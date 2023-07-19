@@ -6,7 +6,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1"
-git2 = "0.13"
+git2 = "0.17"
 handlebars = "4.2"
 humantime = "2.1"
 lazy_static = "1.4"
