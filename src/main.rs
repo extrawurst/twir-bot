@@ -26,7 +26,7 @@ static HELP_MESSAGE: &str = "
 `!collect` - will collect all new entries to add
 `!ack` - will put checkboxes on all found entries
 
-version: {{version}} - uptime: {{uptime}} - channel: {{}}
+version: {{version}} - uptime: {{uptime}} - channel: {{channel}}
 ";
 
 static ACK_MSG: &str = "
@@ -61,9 +61,10 @@ impl EventHandler for Handler {
             .channel_id
             .map(|channel| msg.channel_id != channel)
             .unwrap_or_default()
+            && !msg.is_private()
         {
-            tracing::trace!(
-                "channel ignored: {} (target channel: {:?})",
+            tracing::info!(
+                "msg ignored! channel: {} - target channel: {:?}",
                 msg.channel_id,
                 self.channel_id
             );
