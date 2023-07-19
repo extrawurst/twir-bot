@@ -26,7 +26,7 @@ static HELP_MESSAGE: &str = "
 `!collect` - will collect all new entries to add
 `!ack` - will put checkboxes on all found entries
 
-version: {{version}} - uptime: {{uptime}}
+version: {{version}} - uptime: {{uptime}} - channel: {{}}
 ";
 
 static ACK_MSG: &str = "
@@ -113,9 +113,10 @@ impl Handler {
         let up_time = self.start_time.elapsed();
         let up_time = format_duration(up_time).to_string();
         let reg = Handlebars::new();
+        let channel = self.channel_id.unwrap_or_default();
         let msg_string = reg.render_template(
             HELP_MESSAGE,
-            &json!({ "version": GIT_HASH, "uptime": up_time }),
+            &json!({ "version": GIT_HASH, "uptime": up_time, "channel": channel }),
         )?;
 
         msg.channel_id
