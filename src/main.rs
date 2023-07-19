@@ -59,7 +59,7 @@ impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
         if !self
             .channel_id
-            .map(|channel| msg.channel_id != channel)
+            .map(|channel| msg.channel_id == channel)
             .unwrap_or_default()
             && !msg.is_private()
         {
