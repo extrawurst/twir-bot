@@ -17,6 +17,7 @@ use serenity::{
     prelude::*,
 };
 use std::{collections::HashSet, env, time::Instant};
+use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
 pub const GIT_HASH: &str = env!("GIT_HASH");
 
@@ -312,9 +313,24 @@ impl Handler {
     }
 }
 
+#[cfg(not(debug_assertions))]
+#[must_use]
+pub const fn is_debug() -> bool {
+    false
+}
+
+#[cfg(debug_assertions)]
+#[must_use]
+pub const fn is_debug() -> bool {
+    true
+}
+
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(tracing_subscriber::fmt::layer().with_ansi(is_debug()))
+        .init();
 
     tracing::info!("bot starting");
 
