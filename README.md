@@ -11,3 +11,5 @@ The weekly updates from the community is assembled by a couple of contributors g
 * [ ] do dupe detection on `!collect`
 * [ ] language tag detection on collection (+ reaction)
 * [ ] on each new msg perform check if it would be added (+ reaction)
+* [ ] allow emojis to classify content (official, project updates...)
+* [ ] detect youtube content and mark as `[video]`
