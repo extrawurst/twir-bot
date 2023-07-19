@@ -65,7 +65,7 @@ impl EventHandler for Handler {
 
         if !is_target_channel && !msg.is_private() {
             tracing::info!(
-                "msg ignored! channel: {} - target channel: {:?} - private: {}",
+                "msg filtered! channel: {} - target channel: {:?} - private: {}",
                 msg.channel_id,
                 self.channel_id,
                 msg.is_private()
