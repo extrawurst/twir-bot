@@ -58,19 +58,22 @@ struct Handler {
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
-        if !self
+        let is_target_channel = self
             .channel_id
             .map(|channel| msg.channel_id == channel)
-            .unwrap_or_default()
-            && !msg.is_private()
-        {
+            .unwrap_or_default();
+
+        if !is_target_channel && !msg.is_private() {
             tracing::info!(
-                "msg ignored! channel: {} - target channel: {:?}",
+                "msg ignored! channel: {} - target channel: {:?} - private: {}",
                 msg.channel_id,
-                self.channel_id
+                self.channel_id,
+                msg.is_private()
             );
             return;
         };
+
+        tracing::info!("msg channel ok! msg: '{}'", msg.content.as_str(),);
 
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
