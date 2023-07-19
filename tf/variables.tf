@@ -3,6 +3,7 @@ variable "secret_key" {}
 variable "account_id" {}
 
 variable "discord_token" {}
+variable "channel_id" {}
 
 variable "region" {
   default = "eu-west-1"

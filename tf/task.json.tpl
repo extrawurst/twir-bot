@@ -20,6 +20,10 @@
       {
         "name": "DISCORD_TOKEN",
         "value": "${discord_token}"
+      },
+      {
+        "name": "CHANNEL_ID",
+        "value": "${channel_id}"
       }
     ],
     "mountPoints": [],

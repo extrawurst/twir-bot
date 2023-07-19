@@ -5,6 +5,7 @@ data "template_file" "taskdefinitions" {
     loggroup      = aws_cloudwatch_log_group.loggroup.name
     api-image     = var.docker-image
     discord_token = var.discord_token
+    channel_id    = var.channel_id
   }
 }
 
