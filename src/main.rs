@@ -9,11 +9,10 @@ use regex::Regex;
 use serde_json::json;
 use serenity::{
     async_trait,
-    http::AttachmentType,
     model::{
         channel::{Embed, Message, ReactionType},
-        gateway::Ready,
         id::MessageId,
+        prelude::*,
     },
     prelude::*,
 };
@@ -52,11 +51,25 @@ struct Handler {
     ignore_emojis: HashSet<String>,
     start_time: Instant,
     links_file: Option<LinksFile>,
+    channel_id: Option<ChannelId>,
 }
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
+        if !self
+            .channel_id
+            .map(|channel| msg.channel_id != channel)
+            .unwrap_or_default()
+        {
+            tracing::trace!(
+                "channel ignored: {} (target channel: {:?})",
+                msg.channel_id,
+                self.channel_id
+            );
+            return;
+        };
+
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
@@ -81,11 +94,18 @@ impl Handler {
         ignore_emojis.insert("\u{1F1EE}".into()); //🇮
         ignore_emojis.insert("🛑".into());
 
+        let channel_id = env::var("CHANNEL_ID")
+            .ok()
+            .and_then(|channel| channel.parse::<ChannelId>().ok());
+
+        tracing::info!("target channel: {:?}", channel_id);
+
         Self {
             regex_url: URL_REGEX.clone(),
             ignore_emojis,
             start_time: Instant::now(),
             links_file,
+            channel_id,
         }
     }
 
@@ -304,7 +324,7 @@ async fn main() {
 
     let h = Handler::new(Some(links_file));
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&token, GatewayIntents::default())
         .event_handler(h)
         .await
         .expect("Err creating client");
