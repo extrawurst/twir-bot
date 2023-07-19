@@ -9,7 +9,6 @@ use regex::Regex;
 use serde_json::json;
 use serenity::{
     async_trait,
-    http::AttachmentType,
     model::{
         channel::{Embed, Message, ReactionType},
         id::{ChannelId, MessageId},
@@ -346,10 +345,13 @@ async fn main() {
 
     let h = Handler::new(Some(links_file));
 
-    let mut client = Client::builder(&token)
-        .event_handler(h)
-        .await
-        .expect("Err creating client");
+    let mut client = Client::builder(
+        &token,
+        GatewayIntents::default().union(GatewayIntents::MESSAGE_CONTENT),
+    )
+    .event_handler(h)
+    .await
+    .expect("Err creating client");
 
     if let Err(why) = client.start().await {
         tracing::error!("bot error: {:?}", why);
