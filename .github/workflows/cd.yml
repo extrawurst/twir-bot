@@ -43,5 +43,5 @@ jobs:
     -
       name: Redeploy ECS
       run: |
-        cd twir-bot/scripts
+        cd scripts
         ./redeploy.sh ${{ secrets.AWS_KEY }} ${{ secrets.AWS_SECRET }}
