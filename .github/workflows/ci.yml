@@ -15,11 +15,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
+    - uses: actions/checkout@v3
+    - name: Restore cargo cache
+      uses: Swatinem/rust-cache@v2
       with:
-        toolchain: stable
+        shared-key: "stable"
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
         components: clippy
     - name: check
       run: |
@@ -37,11 +40,14 @@ jobs:
   formatting:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
+    - uses: actions/checkout@v3
+    - name: Restore cargo cache
+      uses: Swatinem/rust-cache@v2
       with:
-        toolchain: stable
+        shared-key: "stable"
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
         components: rustfmt
     - run: cargo fmt -- --check
     - name: cargo-sort
