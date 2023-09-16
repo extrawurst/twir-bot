@@ -9,3 +9,6 @@ check:
 	cargo c
 	cargo clippy
 	cargo t
+
+scrape:
+	cargo r -p=scrape_lobsters
