@@ -6,12 +6,12 @@ use std::{path::Path, sync::Arc, time::Duration};
 use tokio::{fs::read_dir, sync::RwLock, time::sleep};
 
 lazy_static! {
-    pub static ref MD_REGEX: Regex = Regex::new(r#"\*.*\[.*\]\((.*)\)"#).unwrap();
+    pub static ref MD_REGEX: Regex = Regex::new(r"\*.*\[.*\]\((.*)\)").unwrap();
 
     // slighly modified:
     // https://www.geeksforgeeks.org/python-check-url-string/
     pub static ref URL_REGEX: Regex = Regex::new(
-        r#"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))"#).unwrap();
+        r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'.,<>?«»“”‘’]))").unwrap();
 }
 
 #[derive(Clone)]
