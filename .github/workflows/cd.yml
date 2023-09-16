@@ -23,16 +23,16 @@ jobs:
         toolchain: stable
     - name: build
       run: |
-        cargo b --release
+        cargo b -p=twir-bot --release
     - name: rename
       run: |
-        mv target/release/twir-bot bin/server
+        mv target/release/twir-bot twir-bot/bin/server
     - 
       name: size
-      run: ls -l bin/server  
+      run: ls -l twir-bot/bin/server  
     - 
       name: Build image
-      run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+      run: cd twir-bot && docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
     - 
       name: Log in to registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
@@ -43,5 +43,5 @@ jobs:
     -
       name: Redeploy ECS
       run: |
-        cd scripts
+        cd twir-bot/scripts
         ./redeploy.sh ${{ secrets.AWS_KEY }} ${{ secrets.AWS_SECRET }}

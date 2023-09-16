@@ -1,5 +1,5 @@
 # twir-bot
-Little 🤖 helping [TWIR](https://github.com/rust-lang/this-week-in-rust) 🦀 authors extracting gathered content from discord.
+Little discord 🤖 helping [TWIR](https://github.com/rust-lang/this-week-in-rust) 🦀 authors managing weekly community updates.
 
 # context
 The weekly updates from the community is assembled by a couple of contributors gathering links in a discord channel first for review and later assembly into a PR. Assembling the PR usually meant a lot of manual effort. This bot simplifies this a lot:
@@ -14,3 +14,4 @@ The weekly updates from the community is assembled by a couple of contributors g
 * [ ] allow emojis to classify content (official, project updates...)
 * [ ] detect youtube content and mark as `[video]`
 * [ ] scrape reddit for new links posted using [roux](https://github.com/halcyonnouveau/roux)
+* [ ] scrape lobsters for new links posted
