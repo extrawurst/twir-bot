@@ -236,17 +236,17 @@ impl Handler {
 
         msg.channel_id.broadcast_typing(&ctx.http).await?;
 
-        let mut response = "```".to_string();
+        let mut response = String::new();
 
-        for entry in results {
+        for entry in &results {
             response.push_str(&format!("[{}] {}", entry.time, entry.url));
         }
 
-        response.push_str("```");
-
+        let att: AttachmentType = (response.as_bytes(), "list.md").into();
         msg.channel_id
             .send_message(&ctx.http, |m| {
-                m.content(response);
+                m.content(format!("scrape results: {}", results.len()));
+                m.add_file(att);
                 m.reference_message(msg);
                 m
             })
