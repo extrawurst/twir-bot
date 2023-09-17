@@ -13,5 +13,8 @@ The weekly updates from the community is assembled by a couple of contributors g
 * [ ] on each new msg perform check if it would be added (+ reaction)
 * [ ] allow emojis to classify content (official, project updates...)
 * [ ] detect youtube content and mark as `[video]`
-* [ ] scrape reddit for new links posted using [roux](https://github.com/halcyonnouveau/roux)
-* [ ] scrape lobsters for new links posted
+* [x] scrape reddit for new links posted using [roux](https://github.com/halcyonnouveau/roux)
+* [x] scrape lobsters for new links posted
+* [ ] scrape hackernews (harder because no categories)
+* [ ] scrape dev.to
+* [ ] dedup scrape results and post them for review
