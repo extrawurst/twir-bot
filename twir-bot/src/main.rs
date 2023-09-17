@@ -27,6 +27,7 @@ static HELP_MESSAGE: &str = "
 `!help`
 `!collect` - will collect all new entries to add
 `!ack` - will put checkboxes on all found entries
+`!scrape` - will scrape reddit for the last 7 days
 
 version: {{version}} - uptime: {{uptime}} - channel: {{channel}}
 ";
