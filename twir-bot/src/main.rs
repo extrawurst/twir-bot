@@ -104,8 +104,14 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         tracing::info!("bot connected: {}", ready.user.name);
 
-        ctx.set_activity(Activity::watching("ready".to_string()))
+        ctx.set_activity(Activity::playing("ready".to_string()))
             .await;
+
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+
+            ctx.reset_presence().await;
+        });
     }
 }
 
