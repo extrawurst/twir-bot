@@ -88,6 +88,8 @@ impl EventHandler for Handler {
 
         if let Err(err) = res {
             tracing::error!("cmd error: {}", err);
+
+            let _ = self.cmd_error(&ctx, &msg, err).await;
         }
     }
 
@@ -131,6 +133,18 @@ impl Handler {
         msg.channel_id
             .send_message(&ctx.http, |m| {
                 m.content(msg_string);
+                m.reference_message(msg);
+                m
+            })
+            .await?;
+
+        Ok(())
+    }
+
+    async fn cmd_error(&self, ctx: &Context, msg: &Message, err: anyhow::Error) -> Result<()> {
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.content(format!("cmd error: {}", err));
                 m.reference_message(msg);
                 m
             })
