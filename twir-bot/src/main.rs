@@ -78,6 +78,8 @@ impl EventHandler for Handler {
 
         tracing::info!("msg channel ok! msg: '{}'", msg.content.as_str(),);
 
+        ctx.reset_presence().await;
+
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
@@ -93,8 +95,11 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         tracing::info!("bot connected: {}", ready.user.name);
+
+        ctx.set_activity(Activity::watching("startup".to_string()))
+            .await;
     }
 }
 
