@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use roux::{util::FeedOption, Subreddit};
 
 pub struct RedditEntry {
@@ -6,7 +6,7 @@ pub struct RedditEntry {
     pub url: String,
 }
 
-async fn scrape_reddit(until: DateTime<Utc>) -> Vec<RedditEntry> {
+pub async fn scrape_reddit(until: DateTime<Utc>) -> Vec<RedditEntry> {
     let mut results = Vec::new();
 
     let subreddit = Subreddit::new("rust");
@@ -37,13 +37,4 @@ async fn scrape_reddit(until: DateTime<Utc>) -> Vec<RedditEntry> {
     }
 
     results
-}
-
-#[tokio::main]
-async fn main() {
-    let results = scrape_reddit(Utc::now() - Duration::days(7)).await;
-
-    for entry in results {
-        println!("[{}] {:?}", entry.time, entry.url)
-    }
 }

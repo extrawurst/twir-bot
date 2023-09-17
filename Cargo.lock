@@ -1754,11 +1754,13 @@ name = "twir-bot"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "git2",
  "handlebars",
  "humantime",
  "lazy_static",
  "regex",
+ "scrape_reddit",
  "serde_json",
  "serenity",
  "tempfile",

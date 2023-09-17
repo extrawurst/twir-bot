@@ -2,6 +2,7 @@
 mod links_file;
 
 use anyhow::Result;
+use chrono::{Duration, Utc};
 use handlebars::Handlebars;
 use humantime::format_duration;
 use links_file::{LinksFile, URL_REGEX};
@@ -35,6 +36,7 @@ acknowledged: {{count}} entries
 ";
 
 const CMD_COLLECT: &str = "!collect";
+const CMD_SCRAPE: &str = "!scrape";
 const CMD_ACK: &str = "!ack";
 const HELP_COMMAND: &str = "!help";
 
@@ -78,6 +80,7 @@ impl EventHandler for Handler {
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
+            CMD_SCRAPE => self.scrape_cmd(&ctx, &msg).await,
             HELP_COMMAND => self.help_cmd(&ctx, &msg).await,
             _ => self.no_cmd(&ctx, &msg).await,
         };
@@ -203,6 +206,32 @@ impl Handler {
             .send_message(&ctx.http, |m| {
                 m.content(msg_content);
                 m.add_file(att);
+                m.reference_message(msg);
+                m
+            })
+            .await?;
+
+        Ok(())
+    }
+
+    async fn scrape_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
+        msg.channel_id.broadcast_typing(&ctx.http).await?;
+
+        let results = scrape_reddit::scrape_reddit(Utc::now() - Duration::days(7)).await;
+
+        msg.channel_id.broadcast_typing(&ctx.http).await?;
+
+        let mut response = "```".to_string();
+
+        for entry in results {
+            response.push_str(&format!("[{}] {}", entry.time, entry.url));
+        }
+
+        response.push_str("```");
+
+        msg.channel_id
+            .send_message(&ctx.http, |m| {
+                m.content(response);
                 m.reference_message(msg);
                 m
             })

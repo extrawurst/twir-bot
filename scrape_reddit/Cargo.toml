@@ -3,6 +3,14 @@ name = "scrape_reddit"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "scrape_reddit"
+path = "src/lib.rs"
+
+[[bin]]
+name = "scrape_reddit"
+path = "src/bin/bin.rs"
+
 [dependencies]
 chrono = "0.4"
 roux = "2.2"
