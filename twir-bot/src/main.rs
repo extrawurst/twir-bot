@@ -239,7 +239,7 @@ impl Handler {
         let mut response = String::new();
 
         for entry in &results {
-            response.push_str(&format!("[{}] {}", entry.time, entry.url));
+            response.push_str(&format!("[{}] {}\n", entry.time, entry.url));
         }
 
         let att: AttachmentType = (response.as_bytes(), "list.md").into();
