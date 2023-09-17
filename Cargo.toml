@@ -1,3 +1,3 @@
 [workspace]
-members = ["scrape_lobsters", "scrape_reddit", "twir-bot"]
+members = ["scrape_devto", "scrape_lobsters", "scrape_reddit", "twir-bot"]
 resolver = "2"
