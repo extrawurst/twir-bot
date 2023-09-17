@@ -1760,6 +1760,7 @@ dependencies = [
  "humantime",
  "lazy_static",
  "regex",
+ "scrape_lobsters",
  "scrape_reddit",
  "serde_json",
  "serenity",

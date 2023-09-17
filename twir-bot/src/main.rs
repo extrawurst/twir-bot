@@ -7,6 +7,8 @@ use handlebars::Handlebars;
 use humantime::format_duration;
 use links_file::{LinksFile, URL_REGEX};
 use regex::Regex;
+use scrape_lobsters::LobstersEntry;
+use scrape_reddit::RedditEntry;
 use serde_json::json;
 use serenity::{
     async_trait,
@@ -18,6 +20,7 @@ use serenity::{
     prelude::*,
 };
 use std::{collections::HashSet, env, time::Instant};
+use tokio::join;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
 pub const GIT_HASH: &str = env!("GIT_HASH");
@@ -237,21 +240,36 @@ impl Handler {
     async fn scrape_cmd(&self, ctx: &Context, msg: &Message) -> Result<()> {
         msg.channel_id.broadcast_typing(&ctx.http).await?;
 
-        let results = scrape_reddit::scrape_reddit(Utc::now() - Duration::days(7)).await;
+        let until = Utc::now() - Duration::days(7);
+        let (reddit, lobsters): (Vec<RedditEntry>, Vec<LobstersEntry>) = join!(
+            scrape_reddit::scrape_reddit(until),
+            scrape_lobsters::scrape_lobsters(until)
+        );
 
         msg.channel_id.broadcast_typing(&ctx.http).await?;
 
-        let mut response = String::new();
+        let reddit_file = reddit
+            .iter()
+            .map(|entry| format!("[{}] {}", entry.time, entry.url))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let lobsters_file = lobsters
+            .iter()
+            .map(|entry| format!("[{}] {}", entry.time, entry.url))
+            .collect::<Vec<_>>()
+            .join("\n");
 
-        for entry in &results {
-            response.push_str(&format!("[{}] {}\n", entry.time, entry.url));
-        }
-
-        let att: AttachmentType = (response.as_bytes(), "list.md").into();
+        let att_reddit: AttachmentType = (reddit_file.as_bytes(), "reddit.md").into();
+        let att_lobsters: AttachmentType = (lobsters_file.as_bytes(), "lobsters.md").into();
         msg.channel_id
             .send_message(&ctx.http, |m| {
-                m.content(format!("scrape results: {}", results.len()));
-                m.add_file(att);
+                m.content(format!(
+                    "scrape results: {}/{}",
+                    reddit.len(),
+                    lobsters.len()
+                ));
+                m.add_file(att_reddit);
+                m.add_file(att_lobsters);
                 m.reference_message(msg);
                 m
             })
