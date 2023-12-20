@@ -12,6 +12,8 @@ use scrape_reddit::RedditEntry;
 use serde_json::json;
 use serenity::{
     async_trait,
+    builder::{CreateAttachment, CreateMessage, GetMessages},
+    gateway::ActivityData,
     model::{
         channel::{Embed, Message, ReactionType},
         id::{ChannelId, MessageId},
@@ -81,8 +83,7 @@ impl EventHandler for Handler {
 
         tracing::info!("msg channel ok! msg: '{}'", msg.content.as_str(),);
 
-        ctx.set_activity(Activity::playing(msg.content.as_str()))
-            .await;
+        ctx.set_activity(Some(ActivityData::playing(msg.content.as_str())));
 
         let res = match msg.content.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
@@ -98,19 +99,18 @@ impl EventHandler for Handler {
             let _ = self.cmd_error(&ctx, &msg, err).await;
         }
 
-        ctx.reset_presence().await;
+        ctx.reset_presence();
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         tracing::info!("bot connected: {}", ready.user.name);
 
-        ctx.set_activity(Activity::playing("ready".to_string()))
-            .await;
+        ctx.set_activity(Some(ActivityData::playing("ready".to_string())));
 
         tokio::spawn(async move {
             tokio::time::sleep(std::time::Duration::from_secs(60)).await;
 
-            ctx.reset_presence().await;
+            ctx.reset_presence();
         });
     }
 }
@@ -148,11 +148,12 @@ impl Handler {
         )?;
 
         msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(msg_string);
-                m.reference_message(msg);
-                m
-            })
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(msg_string)
+                    .reference_message(msg),
+            )
             .await?;
 
         Ok(())
@@ -160,11 +161,12 @@ impl Handler {
 
     async fn cmd_error(&self, ctx: &Context, msg: &Message, err: anyhow::Error) -> Result<()> {
         msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(format!("cmd error: {}", err));
-                m.reference_message(msg);
-                m
-            })
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(format!("cmd error: {}", err))
+                    .reference_message(msg),
+            )
             .await?;
 
         Ok(())
@@ -189,11 +191,12 @@ impl Handler {
         let msg_string = reg.render_template(ACK_MSG, &json!({ "count": entries.len() }))?;
 
         msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(msg_string);
-                m.reference_message(msg);
-                m
-            })
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(msg_string)
+                    .reference_message(msg),
+            )
             .await?;
 
         Ok(())
@@ -233,14 +236,17 @@ impl Handler {
         let (msg_content, attachement_content) =
             Self::create_collect_response(stop_msg_link, entries)?;
 
-        let att: AttachmentType = (attachement_content.as_bytes(), "list.md").into();
         msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(msg_content);
-                m.add_file(att);
-                m.reference_message(msg);
-                m
-            })
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(msg_content)
+                    .add_file(CreateAttachment::bytes(
+                        attachement_content.as_bytes(),
+                        "list.md",
+                    ))
+                    .reference_message(msg),
+            )
             .await?;
 
         Ok(())
@@ -268,20 +274,22 @@ impl Handler {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let att_reddit: AttachmentType = (reddit_file.as_bytes(), "reddit.md").into();
-        let att_lobsters: AttachmentType = (lobsters_file.as_bytes(), "lobsters.md").into();
         msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.content(format!(
-                    "scrape results: {}/{}",
-                    reddit.len(),
-                    lobsters.len()
-                ));
-                m.add_file(att_reddit);
-                m.add_file(att_lobsters);
-                m.reference_message(msg);
-                m
-            })
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(format!(
+                        "scrape results: {}/{}",
+                        reddit.len(),
+                        lobsters.len()
+                    ))
+                    .add_file(CreateAttachment::bytes(reddit_file.as_bytes(), "reddit.md"))
+                    .add_file(CreateAttachment::bytes(
+                        lobsters_file.as_bytes(),
+                        "lobsters.md",
+                    ))
+                    .reference_message(msg),
+            )
             .await?;
 
         Ok(())
@@ -299,7 +307,7 @@ impl Handler {
         'outer: loop {
             let messages = msg
                 .channel_id
-                .messages(&ctx.http, |retriever| retriever.before(message_cursor))
+                .messages(&ctx.http, GetMessages::new().before(message_cursor))
                 .await?;
 
             if messages.is_empty() {
