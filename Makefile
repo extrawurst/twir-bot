@@ -10,5 +10,8 @@ check:
 	cargo clippy
 	cargo t
 
-scrape:
+scrape-lobsters:
 	cargo r -p=scrape_lobsters
+
+scrape-reddit:
+	cargo r -p=scrape_reddit

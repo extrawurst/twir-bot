@@ -15,3 +15,4 @@ path = "src/bin/bin.rs"
 chrono = "0.4"
 roux = "2.2"
 tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
