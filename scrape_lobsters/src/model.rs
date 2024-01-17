@@ -25,7 +25,7 @@ pub struct User {
     pub is_admin: bool,
     pub about: String,
     pub is_moderator: bool,
-    pub karma: i64,
+    pub karma: Option<i64>,
     pub avatar_url: String,
     pub invited_by_user: String,
     pub github_username: Option<String>,
