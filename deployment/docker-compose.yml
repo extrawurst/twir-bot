@@ -1,0 +1,7 @@
+services:
+  bot:
+    image: ghcr.io/extrawurst/twir-bot
+    environment:
+      RUST_LOG: ${RUST_LOG}
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      CHANNEL_ID: ${CHANNEL_ID}
