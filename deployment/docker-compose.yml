@@ -1,7 +1,7 @@
 services:
   bot:
     image: ghcr.io/extrawurst/twir-bot
-    restart: always
+    restart: unless-stopped
     environment:
       RUST_LOG: ${RUST_LOG}
       DISCORD_TOKEN: ${DISCORD_TOKEN}
