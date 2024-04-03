@@ -423,11 +423,17 @@ async fn main() {
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
+    tracing::info!("bot starting: parse link file");
+
     let links_file = LinksFile::new()
         .await
         .expect("Expected links file to download");
 
+    tracing::info!("bot starting: init handler");
+
     let h = Handler::new(Some(links_file));
+
+    tracing::info!("bot starting: init discord client");
 
     let mut client = Client::builder(
         &token,
@@ -436,6 +442,8 @@ async fn main() {
     .event_handler(h)
     .await
     .expect("Err creating client");
+
+    tracing::info!("bot starting: starting discord client");
 
     if let Err(why) = client.start().await {
         tracing::error!("bot error: {:?}", why);
