@@ -15,7 +15,7 @@ regex = "1"
 scrape_lobsters = { path = "../scrape_lobsters" }
 scrape_reddit = { path = "../scrape_reddit" }
 serde_json = "1.0"
-serenity = { version = "0.12", default-features = false, features = [
+serenity = { git = "https://github.com/serenity-rs/serenity.git", rev = "658b6a7", default-features = false, features = [
     "client",
     "gateway",
     "rustls_backend",
