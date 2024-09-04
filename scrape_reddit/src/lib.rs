@@ -4,13 +4,11 @@ use roux::{
     Subreddit,
 };
 
-///
 pub struct RedditEntry {
     pub time: DateTime<Utc>,
     pub url: String,
 }
 
-///
 pub async fn scrape_reddit(until: DateTime<Utc>) -> Vec<RedditEntry> {
     match scrape_reddit_internal(until).await {
         Ok(res) => res,
@@ -21,7 +19,6 @@ pub async fn scrape_reddit(until: DateTime<Utc>) -> Vec<RedditEntry> {
     }
 }
 
-///
 async fn scrape_reddit_internal(until: DateTime<Utc>) -> Result<Vec<RedditEntry>, RouxError> {
     let mut results = Vec::new();
 

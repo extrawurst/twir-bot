@@ -70,13 +70,15 @@ impl EventHandler for Handler {
             .channel_id
             .map(|channel| msg.channel_id == channel)
             .unwrap_or_default();
+        let is_private = msg.guild_id.is_none();
 
-        if !is_target_channel && !msg.is_private() {
+        //note if its not the right channel only let it pass if its a private direct message
+        if !is_target_channel && !is_private {
             tracing::info!(
                 "msg filtered! channel: {} - target channel: {:?} - private: {}",
                 msg.channel_id,
                 self.channel_id,
-                msg.is_private()
+                is_private
             );
             return;
         };
