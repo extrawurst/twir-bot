@@ -1,7 +1,7 @@
-DISCORD_TOKEN=1234
+DISCORD_TOKEN:=1234
 
 run:
-	DISCORD_TOKEN=${DISCORD_TOKEN} cargo r
+	DISCORD_TOKEN={{DISCORD_TOKEN}} CHANNEL_ID=904895263955644446 cargo r --bin twir-bot
 
 check:
 	cargo fmt -- --check
