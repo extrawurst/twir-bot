@@ -1,7 +1,8 @@
 #![forbid(unsafe_code)]
 mod links_file;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
+use bsky::bsky_post;
 use chrono::{Duration, Utc};
 use handlebars::Handlebars;
 use humantime::format_duration;
@@ -33,6 +34,7 @@ static HELP_MESSAGE: &str = "
 `!collect` - will collect all new entries to add
 `!ack` - will put checkboxes on all found entries
 `!scrape` - will scrape reddit for the last 7 days
+`!bsky <url>` - post url of latest twir post to bsky
 
 version: {{version}} - uptime: {{uptime}} - channel: {{channel}}
 ";
@@ -44,6 +46,7 @@ acknowledged: {{count}} entries
 const CMD_COLLECT: &str = "!collect";
 const CMD_SCRAPE: &str = "!scrape";
 const CMD_ACK: &str = "!ack";
+const CMD_BSKY: &str = "!bsky";
 const HELP_COMMAND: &str = "!help";
 
 const UNICODE_CHECKBOX: &str = "✅";
@@ -61,6 +64,7 @@ struct Handler {
     start_time: Instant,
     links_file: Option<LinksFile>,
     channel_id: Option<ChannelId>,
+    bsky_creds: Option<(String, String)>,
 }
 
 #[async_trait]
@@ -83,14 +87,26 @@ impl EventHandler for Handler {
             return;
         };
 
-        tracing::info!("msg channel ok! msg: '{}'", msg.content.as_str(),);
+        let args = msg
+            .content
+            .as_str()
+            .split(" ")
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
 
-        ctx.set_activity(Some(ActivityData::playing(msg.content.as_str())));
+        let Some(cmd) = args.first().clone() else {
+            return;
+        };
 
-        let res = match msg.content.as_str() {
+        tracing::info!("msg channel ok! msg: '{}'", cmd,);
+
+        ctx.set_activity(Some(ActivityData::playing(cmd)));
+
+        let res = match cmd {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
             CMD_SCRAPE => self.scrape_cmd(&ctx, &msg).await,
+            CMD_BSKY => self.bsky_cmd(&ctx, &msg, &args).await,
             HELP_COMMAND => self.help_cmd(&ctx, &msg).await,
             _ => self.no_cmd(&ctx, &msg).await,
         };
@@ -136,6 +152,10 @@ impl Handler {
             start_time: Instant::now(),
             links_file,
             channel_id,
+            bsky_creds: Some((
+                env::var("BSKY_USR").unwrap_or_default(),
+                env::var("BSKY_KEY").unwrap_or_default(),
+            )),
         }
     }
 
@@ -289,6 +309,37 @@ impl Handler {
                     .add_file(CreateAttachment::bytes(
                         lobsters_file.as_bytes(),
                         "lobsters.md",
+                    ))
+                    .reference_message(msg),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn bsky_cmd(&self, ctx: &Context, msg: &Message, args: &[String]) -> Result<()> {
+        msg.channel_id.broadcast_typing(&ctx.http).await?;
+
+        let Some(link) = args.into_iter().nth(1).cloned() else {
+            bail!("no link provided")
+        };
+
+        let Some((bsky_usr, bsky_key)) = self.bsky_creds else {
+            bail!("no bsky credentials provided")
+        };
+
+        let (post, version) = bsky_post(&link, &bsky_creds, &bsky_key).await?;
+
+        msg.channel_id
+            .send_message(
+                &ctx.http,
+                CreateMessage::new()
+                    .content(format!(
+                        "bsky post done for {}:\n
+                        ```\n
+                        {}\n
+                        ```\n",
+                        version, post
                     ))
                     .reference_message(msg),
             )
