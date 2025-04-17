@@ -1,2 +1,6 @@
+dotenv:
+    cat .env.tpl | op inject > .env
+    direnv allow
+
 post:
-    cargo r -- https://this-week-in-rust.org/blog/2025/04/09/this-week-in-rust-594/
+    cargo r -- https://this-week-in-rust.org/blog/2025/04/16/this-week-in-rust-595/
