@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ))
     .await?;
 
-    agent
+    let result = agent
         .create_record(atrium_api::app::bsky::feed::post::RecordData {
             created_at: Datetime::now(),
             embed: None,
@@ -40,5 +40,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             text: rt.text,
         })
         .await?;
+
+    println!("post created: {}", result.uri);
+
     Ok(())
 }
