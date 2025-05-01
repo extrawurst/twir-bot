@@ -3,4 +3,4 @@ dotenv:
     direnv allow
 
 post:
-    cargo r -- https://this-week-in-rust.org/blog/2025/04/16/this-week-in-rust-595/
+    cargo r -- https://this-week-in-rust.org/blog/2025/04/30/this-week-in-rust-597/

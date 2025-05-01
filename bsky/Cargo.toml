@@ -15,4 +15,5 @@ path = "src/bin/main.rs"
 atrium-api = "0.25.2"
 bsky-sdk = "0.1.18"
 regex = "1.11.1"
-tokio = { version = "1.44.2", features = ["full"] }
+thiserror = "1"
+tokio = { workspace = true, features = ["full"] }

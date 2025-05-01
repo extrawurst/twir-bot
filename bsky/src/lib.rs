@@ -1,28 +1,37 @@
-use core::fmt;
+use std::num::ParseIntError;
 
 use atrium_api::types::string::Datetime;
 use bsky_sdk::{BskyAgent, rich_text::RichText};
 use regex::Regex;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub struct BskyLinkParsingError;
-
-impl std::error::Error for BskyLinkParsingError {}
-
-impl fmt::Display for BskyLinkParsingError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BskyLinkParsingError")
-    }
+#[derive(Error, Debug)]
+pub enum BskyPostingError {
+    #[error("regex error: {0}")]
+    RegexError(#[from] regex::Error),
+    #[error("parse int erro: {0}")]
+    ParseIntError(#[from] ParseIntError),
+    #[error("Link parse error")]
+    LinkParseError,
+    #[error("bsky error: {0}")]
+    BskyError(#[from] bsky_sdk::Error),
+    #[error("atrium rpc session error: {0}")]
+    AtriumRPCSessionError(
+        #[from] atrium_api::xrpc::Error<atrium_api::com::atproto::server::create_session::Error>,
+    ),
 }
 
 pub async fn bsky_post(
     url: &str,
     bsky_usr: &str,
     bsky_key: &str,
-) -> Result<(String, u32), Box<dyn std::error::Error>> {
+) -> Result<(String, u32), BskyPostingError> {
     let regex = Regex::new(r"this-week-in-rust-(\d*)")?;
 
-    let version = regex.captures(url).ok_or(Box::new(BskyLinkParsingError))?[1].parse::<u32>()?;
+    let version = regex
+        .captures(url)
+        .ok_or(BskyPostingError::LinkParseError)?[1]
+        .parse::<u32>()?;
 
     let msg = format!("This week in #rust {} {} #rustlang", version, url);
 

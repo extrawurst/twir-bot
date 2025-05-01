@@ -102,7 +102,7 @@ impl EventHandler for Handler {
 
         ctx.set_activity(Some(ActivityData::playing(cmd)));
 
-        let res = match cmd {
+        let res = match cmd.as_str() {
             CMD_COLLECT => self.collect_cmd(&ctx, &msg).await,
             CMD_ACK => self.ack_cmd(&ctx, &msg).await,
             CMD_SCRAPE => self.scrape_cmd(&ctx, &msg).await,
@@ -324,11 +324,11 @@ impl Handler {
             bail!("no link provided")
         };
 
-        let Some((bsky_usr, bsky_key)) = self.bsky_creds else {
+        let Some((bsky_usr, bsky_key)) = &self.bsky_creds else {
             bail!("no bsky credentials provided")
         };
 
-        let (post, version) = bsky_post(&link, &bsky_creds, &bsky_key).await?;
+        let (post, version) = bsky_post(&link, bsky_usr.as_str(), bsky_key.as_str()).await?;
 
         msg.channel_id
             .send_message(

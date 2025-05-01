@@ -224,6 +224,7 @@ dependencies = [
  "atrium-api",
  "bsky-sdk",
  "regex",
+ "thiserror",
  "tokio",
 ]
 
