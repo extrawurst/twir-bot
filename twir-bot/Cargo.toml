@@ -6,6 +6,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1"
+bsky = { path = "../bsky" }
 chrono = "0.4"
 git2 = "0.17"
 handlebars = "4.2"
@@ -14,7 +15,6 @@ lazy_static = "1.4"
 regex = "1"
 scrape_lobsters = { path = "../scrape_lobsters" }
 scrape_reddit = { path = "../scrape_reddit" }
-bsky = { path = "../bsky" }
 serde_json = "1.0"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", rev = "658b6a7", default-features = false, features = [
     "client",
