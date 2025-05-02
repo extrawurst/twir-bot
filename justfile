@@ -1,7 +1,9 @@
-DISCORD_TOKEN:=""
+
+dotenv:
+    direnv allow
 
 run:
-	DISCORD_TOKEN={{DISCORD_TOKEN}} CHANNEL_ID=904895263955644446 cargo r --bin twir-bot
+	cargo r --bin twir-bot
 
 check:
 	cargo fmt -- --check

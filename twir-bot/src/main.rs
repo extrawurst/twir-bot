@@ -328,19 +328,13 @@ impl Handler {
             bail!("no bsky credentials provided")
         };
 
-        let (post, version) = bsky_post(&link, bsky_usr.as_str(), bsky_key.as_str()).await?;
+        let (_post, version, link) = bsky_post(&link, bsky_usr.as_str(), bsky_key.as_str()).await?;
 
         msg.channel_id
             .send_message(
                 &ctx.http,
                 CreateMessage::new()
-                    .content(format!(
-                        "bsky post done for {}:\n
-                        ```\n
-                        {}\n
-                        ```\n",
-                        version, post
-                    ))
+                    .content(format!("bsky post done for {}: {}", version, link))
                     .reference_message(msg),
             )
             .await?;

@@ -19,13 +19,15 @@ pub enum BskyPostingError {
     AtriumRPCSessionError(
         #[from] atrium_api::xrpc::Error<atrium_api::com::atproto::server::create_session::Error>,
     ),
+    #[error("Record key parse error")]
+    InvalidDid,
 }
 
 pub async fn bsky_post(
     url: &str,
     bsky_usr: &str,
     bsky_key: &str,
-) -> Result<(String, u32), BskyPostingError> {
+) -> Result<(String, u32, String), BskyPostingError> {
     let regex = Regex::new(r"this-week-in-rust-(\d*)")?;
 
     let version = regex
@@ -43,7 +45,7 @@ pub async fn bsky_post(
         agent
     };
 
-    agent
+    let obj = agent
         .create_record(atrium_api::app::bsky::feed::post::RecordData {
             created_at: Datetime::now(),
             embed: None,
@@ -57,5 +59,11 @@ pub async fn bsky_post(
         })
         .await?;
 
-    Ok((msg, version))
+    let rkey = obj.uri.split("/").last().expect("rkey missing").to_string();
+
+    let did = agent.did().await.ok_or(BskyPostingError::InvalidDid)?;
+
+    let url = format!("https://bsky.app/profile/{}/post/{}", did.to_string(), rkey);
+
+    Ok((msg, version, url))
 }
