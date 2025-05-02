@@ -19,8 +19,10 @@ pub enum BskyPostingError {
     AtriumRPCSessionError(
         #[from] atrium_api::xrpc::Error<atrium_api::com::atproto::server::create_session::Error>,
     ),
-    #[error("Record key parse error")]
+    #[error("Did parsing error")]
     InvalidDid,
+    #[error("rkey parsing error")]
+    InvalidRKey,
 }
 
 pub async fn bsky_post(
@@ -59,11 +61,19 @@ pub async fn bsky_post(
         })
         .await?;
 
-    let rkey = obj.uri.split("/").last().expect("rkey missing").to_string();
+    let rkey = obj
+        .uri
+        .split("/")
+        .last()
+        .ok_or(BskyPostingError::InvalidRKey)?;
 
-    let did = agent.did().await.ok_or(BskyPostingError::InvalidDid)?;
+    let did = agent
+        .did()
+        .await
+        .ok_or(BskyPostingError::InvalidDid)?
+        .to_string();
 
-    let url = format!("https://bsky.app/profile/{}/post/{}", did.to_string(), rkey);
+    let url = format!("https://bsky.app/profile/{}/post/{}", did, rkey);
 
     Ok((msg, version, url))
 }

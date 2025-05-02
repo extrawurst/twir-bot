@@ -94,7 +94,7 @@ impl EventHandler for Handler {
             .map(|s| s.to_string())
             .collect::<Vec<_>>();
 
-        let Some(cmd) = args.first().clone() else {
+        let Some(cmd) = args.first() else {
             return;
         };
 
@@ -320,7 +320,7 @@ impl Handler {
     async fn bsky_cmd(&self, ctx: &Context, msg: &Message, args: &[String]) -> Result<()> {
         msg.channel_id.broadcast_typing(&ctx.http).await?;
 
-        let Some(link) = args.into_iter().nth(1).cloned() else {
+        let Some(link) = args.get(1).cloned() else {
             bail!("no link provided")
         };
 
