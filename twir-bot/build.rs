@@ -17,10 +17,10 @@ fn get_git_hash() -> (String, String) {
         if let Ok(commit_output) = commit {
             let commit_string = String::from_utf8_lossy(&commit_output.stdout);
 
-            return (
+            (
                 branch_string.lines().next().unwrap_or("").into(),
                 commit_string.lines().next().unwrap_or("").into(),
-            );
+            )
         } else {
             panic!("Can not get git commit: {}", commit.unwrap_err());
         }

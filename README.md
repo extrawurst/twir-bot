@@ -6,6 +6,10 @@ The weekly updates from the community is assembled by a couple of contributors g
 
 ![demo](demo.gif)
 
+# how to test
+
+see https://www.writebots.com/discord-bot-token/
+
 # TODO
 * [x] limit bot to specific channel
 * [ ] do dupe detection on `!collect`

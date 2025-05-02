@@ -1,3 +1,15 @@
 [workspace]
-members = ["bsky", "scrape_devto", "scrape_lobsters", "scrape_reddit", "twir-bot"]
+members = [
+    "bsky",
+    "scrape_devto",
+    "scrape_lobsters",
+    "scrape_reddit",
+    "twir-bot",
+]
 resolver = "2"
+
+[workspace.dependencies]
+tokio = "1"
+tracing = "0.1"
+serde_json = "1.0"
+chrono = "0.4"

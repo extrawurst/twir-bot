@@ -3,8 +3,17 @@ name = "bsky"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "bsky"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bsky"
+path = "src/bin/main.rs"
+
 [dependencies]
-atrium-api = "0.25.2"
-bsky-sdk = "0.1.18"
+atrium-api = "0.25.3"
+bsky-sdk = "0.1.19"
 regex = "1.11.1"
-tokio = { version = "1.44.2", features = ["full"] }
+thiserror = "1"
+tokio = { workspace = true, features = ["full"] }
